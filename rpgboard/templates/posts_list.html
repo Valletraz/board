@@ -1,0 +1,58 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+
+
+{% block title %}
+Объявления
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим сам товар, идентификатор которого был передан в url -->
+{% block content %}
+{% if posts_list %}
+
+    <h1> Всего публикаций: {{ posts_list|length }} </h1>
+
+    {# Теперь будем проверять не request.user.is_authenticated, а конкретные права #}
+    {% if perms.posts.add_post %}
+        <a href="{% url 'post_create' %}">Добавить публикацию</a>
+    {% endif %}
+    <br>
+
+
+    <table align="center">
+               <tr>
+                   <td>Заголовок</td>
+                   <td>Дата публикации</td>
+                   <td>Текст</td>
+                   {# Условие получается составным. #}
+                   {% if perms.posts.change_post or perms.posts.delete_post %}
+                       <td>Действия</td>
+                   {% endif %}
+               </tr>
+        {% for posts in posts_list %}
+               <tr>
+                   <td>{{ posts.title }}</td>
+                   <td>{{ posts.add_time|date:"d M Y" }}</td>
+                   <td>{{ posts.text|truncatechars:20 }}</td>
+
+                   <td>
+                    {# А здесь доступ для каждой ссылки теперь будем проверять отдельно #}
+                    {% if perms.posts.change_post %}
+                        <a href="{% url 'post_update' pk=posts.pk %}">Изменить</a>
+                    {% endif %}
+                    {% if perms.posts.delete_post %}
+                        <a href="{% url 'post_delete' pk=posts.pk %}">Удалить</a>
+                    {% endif %}
+                </td>
+
+               </tr>
+        {% endfor %}
+    </table>
+
+{% else %}
+    <h2>Публикаций нет!</h2>
+    <a href="{% url 'post_create' %}">Добавить публикацию</a>
+{% endif %}
+
+
+{% endblock content %}
